@@ -5,12 +5,11 @@ No content from the tutorial is used. The rest comes from the tutorial of coding
 //https://youtu.be/Pn1g1wjxl_0?si=9QlBKQwosmoBvxFS
 
 //This is the second iteration. The swimming ring only moves up and down with the audio. A play button is added.
-
 let graphicsObjects = []; // Array to store all graphics objects
-let colorPalette; // Define color palette variable
+let colorPalette; // Variable for color palette
 let shadowRings = []; // Array to store shadow ring positions and radius information
-let waveEffect;
-let gridLayer;
+let waveEffect; // Variable for wave effect instance
+let gridLayer; // Layer to draw the grid
 
 let sound, fft, amplitude, r = 130, dr = 70; // Variables for sound, FFT, amplitude, and circle radii
 let lowEnergy = 0; // Variable to store low-energy value from FFT
@@ -26,29 +25,29 @@ let wave = []; // Array for wave data
 
 let shakeFreq = 0, shakeFlag = false; // Variables for screen shake effect
 function preload(){ 
-	sound = loadSound("assets/Spring.mp3");
+	sound = loadSound("assets/Spring.mp3"); // Load sound file before setup
 } 
 
 function setup() {
   createCanvas(windowWidth, windowHeight); // Set canvas size to window size
   
-  fft = new p5.FFT(); 
-  fft.setInput(sound);
-  sound.play();
-  amplitude = new p5.Amplitude();
-  amplitude.setInput(sound);
+  fft = new p5.FFT(); // Create FFT (Fast Fourier Transform) object
+  fft.setInput(sound); // Set FFT input to the loaded sound
+  sound.play(); // Start playing the sound
+  amplitude = new p5.Amplitude(); // Create amplitude analysis object
+  amplitude.setInput(sound); // Set amplitude input to the loaded sound
   
-  initializeGraphics(); // Initialize graphics objects
-  pixelDensity(1);
+  initializeGraphics(); // Initialize graphics objects (like circles and wave effects)
+  pixelDensity(1); // Set pixel density for the display
 
-  // Initialize wave effect
+  // Initialize wave effect with specified color and parameters
   poolColor = color(0, 164, 223)
   waveEffect = new WaveEffect(80, poolColor, 3, 200);
   // waveInit()
 
   // Create grid and distortion effect layer
   gridLayer = createGraphics(width, height);
-  drawGridAndDistortion(gridLayer); // Draw distorted grid
+  drawGridAndDistortion(gridLayer); // Draw the distorted grid
   
   
    p = createVector(random(width), 200) // rain
@@ -64,35 +63,35 @@ function setup() {
 
 function initializeGraphics() {
   graphicsObjects = []; // Reset graphics objects array
-  shadowRings = []; // Reset shadow ring position storage
+  shadowRings = []; // Reset shadow rings position storage
 
   colorPalette = [
     color(245, 185, 193), // 粉色Pink
     color(237, 170, 63),   // 橙色Orange
-    color(166, 233, 156), // Light green
-    color(238, 116, 178), // Hot pink
-    color(65, 124, 180),   // Steel blue
-    color(149, 205, 232)   // Light blue
+    color(166, 233, 156), // 亮绿色Bright Green
+    color(238, 116, 178), // 热粉色Hot Pink
+    color(65, 124, 180),   // 钢蓝色Steel Blue
+    color(149, 205, 232)   // 浅蓝色Light Blue
   ];
 
-  const minDistance = 250; // Set the minimum distance between each ring
+  const minDistance = 250; // Set minimum distance between each ring
 
   // Create multiple non-overlapping shadow rings
   for (let i = 0; i < 10; i++) {
     let posX, posY;
     let isOverlapping;
     let attempts = 0;
-    const maxAttempts = 100; // Set maximum attempt count
+    const maxAttempts = 100; // Set maximum number of attempts
 
     do {
       posX = random(100, width - 50);
       posY = random(100, height - 50);
       isOverlapping = false;
 
-      // Check if the new shadow ring overlaps with existing ones
+      // Check if new shadow ring overlaps with existing rings
       for (let ring of shadowRings) {
         let distance = dist(posX, posY, ring.x, ring.y);
-        if (distance < minDistance) { // Ensure the new ring is at least 'minDistance' from existing rings
+        if (distance < minDistance) { // Ensure distance between new ring and existing rings is greater than minimum
           isOverlapping = true;
           break;
         }
@@ -107,7 +106,7 @@ function initializeGraphics() {
     shadowRings.push({ x: posX, y: posY, radius: 80 });
   }
 
-  // Add the corresponding main gradient ring and decorative smaller circle rings for each shadow ring
+  // Add main gradient rings and decorative small circles for each shadow ring
   for (let ring of shadowRings) {
     let posX = ring.x - 80;
     let posY = ring.y - 80;
@@ -142,10 +141,10 @@ function draw() {
   background(240);
   image(gridLayer, 0, 0);
   waveEffect.display();
-  let spectrum = fft.analyze(); // Analyze the audio spectrum
-  // Calculate the energy in bass and treble
-  lowEnergy = fft.getEnergy("bass");
-  let highEnergy = fft.getEnergy("treble");
+  let spectrum = fft.analyze(); // Analyze audio spectrum
+  // 计算低音和高音能量
+  lowEnergy = fft.getEnergy("bass"); // Calculate bass energy
+  let highEnergy = fft.getEnergy("treble"); // Calculate treble energy
   
   let frame = int(map(lowEnergy, 0, 300, 0, 30))
   
@@ -170,11 +169,12 @@ function draw() {
   }else{
     
     for(let obj of graphicsObjects){
-        rr += 0.01
+        rr += PI * 2 / 10
         if(rr > PI * 2){
           rr = 0
         }
         
+        obj.x = obj.initX + sin(frame * 12) *  20
         obj.y = obj.initY + cos(frame * 12) *  20
         obj.display(rr)
     }
@@ -193,24 +193,25 @@ function draw() {
 }
 
 function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
+  resizeCanvas(windowWidth, windowHeight); // Adjust canvas size to new window size
 
-  initializeGraphics(); // Initialize graphics objects
+  initializeGraphics(); // Reinitialize graphics objects
   pixelDensity(1);
 
-  // Initialize wave effect
+  // 初始化波纹效果Initialize the wave effect with color, density, and transparency settings
   poolColor = color(0, 164, 223)
   waveEffect = new WaveEffect(80, poolColor, 3, 200);
 
-  // Create grid and distortion effect layer
+  // Create the grid and distortion effect layer
   gridLayer = createGraphics(width, height);
-  drawGridAndDistortion(gridLayer); // Draw distorted grid
+  drawGridAndDistortion(gridLayer); // Draws the distorted grid
 
-  // Adjust the position of the floaties (graphics objects)
+  // Adjust position of graphical objects (e.g., rings) to fit the screen dimensions
   graphicsObjects.forEach(obj => {
     if (obj instanceof GradientRing || obj instanceof ConcentricCircles || obj instanceof DecorativeCircleRing) {
       obj.x = map(obj.x, 0, width, 0, windowWidth);
       obj.y = map(obj.y, 0, height, 0, windowHeight);
+      obj.initX = obj.x
       obj.initY = obj.y
     }
   });
@@ -218,7 +219,7 @@ function windowResized() {
   
 }
 
-// Gradient ring class
+// 渐变圆环类GradientRing class for creating a ring with gradient colors
 class GradientRing {
   constructor(x, y, innerRadius, outerRadius, numRings, shadowColor, midColor, highlightColor) {
     this.x = x;
@@ -229,6 +230,7 @@ class GradientRing {
     this.colors = [shadowColor, midColor, highlightColor];
   }
 
+  // Calculate gradient color based on position within the ring
   calculateColor(t) {
     if (t < 0.5) {
       return lerpColor(this.colors[0], this.colors[1], t * 2);
@@ -237,6 +239,7 @@ class GradientRing {
     }
   }
 
+  // Display the gradient ring with rotation
   display(rot) {
     let step = (this.outerRadius - this.innerRadius) / this.numRings;
     for (let r = this.innerRadius; r <= this.outerRadius; r += step) {
@@ -255,7 +258,7 @@ class GradientRing {
   }
 }
 
-// Concentric circles class
+// 同心圆类ConcentricCircles class for creating concentric rings
 class ConcentricCircles {
   constructor(x, y, numCircles, minRadius, maxRadius, strokeColor) {
     this.x = x;
@@ -266,6 +269,7 @@ class ConcentricCircles {
     this.strokeColor = strokeColor;
   }
 
+  // Display concentric circles with rotation
   display(rot) {
     noFill();
     stroke(this.strokeColor);
@@ -274,14 +278,14 @@ class ConcentricCircles {
       let radius = map(i, 0, this.numCircles - 1, this.minRadius, this.maxRadius);
       push()
       translate(this.x, this.y)
-      rotate(rot); // Rotate each circle by `rot` angle
-      ellipse(0, 0, radius * 2, radius * 2); // Draw circle with calculated radius
+      rotate(rot);
+      ellipse(0, 0, radius * 2, radius * 2);
       pop()
     }
   }
 }
 
-// Decorative Circle Ring class
+// 装饰小圆环类DecorativeCircleRing class to create a ring of small circles
 class DecorativeCircleRing {
   constructor(x, y, radius, numCircles, fillColor) {
     this.x = x;
@@ -289,83 +293,91 @@ class DecorativeCircleRing {
     this.radius = radius;
     this.numCircles = numCircles;
     this.fillColor = fillColor;
-    this.angleStep = TWO_PI / this.numCircles; // Angle between each circle
+    this.angleStep = TWO_PI / this.numCircles;
   }
 
+  // Display the decorative circle ring with rotation
   display(rot) {
     push()
       translate(this.x, this.y)
     
-    for (let j = 0; j < 4; j++) { // Layered rings with different offsets
+      // Loop through different layers of circles
+    for (let j = 0; j < 4; j++) {
       // graphicsObjects.push(new DecorativeCircleRing(posX, posY, baseRadius + j * radiusIncrement, 36 + j * 6, color(255, 255, 255, baseOpacity - j * opacityDecrement)));
       
       fill(this.fillColor);
       noStroke();
       
-      rotate(rot - j * 0.2); // Adjust rotation slightly for each layer
+      // Rotate each layer slightly to add depth
+      rotate(rot - j * 0.2);
       for (let i = 0; i < this.numCircles; i++) {
         let angle = i * this.angleStep;
-        let x = (this.radius + j * 10) * cos(angle); // Adjust position by radius and layer
+        let x = (this.radius + j * 10) * cos(angle);
         let y = (this.radius + j * 10) * sin(angle);
-        ellipse(x, y, 6, 6) // Draw each small circle
+        ellipse(x, y, 6, 6)
       }
     }
     pop()
   }
 }
 
-// 绘制网格和扭曲效果的函数 // Function to draw a grid with distortion effects
+// Function to draw a distorted grid on a layer
 function drawGridAndDistortion(layer) {
-  layer.background(173, 216, 230); // Light blue background
-  layer.stroke(100, 150, 200); // Grid line color
+  layer.background(173, 216, 230);
+  layer.stroke(100, 150, 200);
   layer.strokeWeight(2);
   let gridSize = 40;
   
+  // Draw vertical lines with distortion
   for (let x = 0; x < width; x += gridSize) {
     layer.beginShape();
     for (let y = 0; y <= height; y += gridSize) {
-      let offsetX = noise(x * 0.1, y * 0.1) * 10 - 5; // Distortion for X position
+      let offsetX = noise(x * 0.1, y * 0.1) * 10 - 5;
       layer.vertex(x + offsetX, y);
     }
     layer.endShape();
   }
 
+  // Draw horizontal lines with distortion
   for (let y = 0; y < height; y += gridSize) {
     layer.beginShape();
     for (let x = 0; x <= width; x += gridSize) {
-      let offsetY = noise(x * 0.1, y * 0.1) * 10 - 5; // Distortion for Y position
+      let offsetY = noise(x * 0.1, y * 0.1) * 10 - 5;
       layer.vertex(x, y + offsetY);
     }
     layer.endShape();
   }
 }
 
-// Point class to represent stationary feature points
+// Point class represents a static feature point in the wave effect
 class Point {
   constructor(x, y) {
-    this.position = createVector(x, y); // Position vector of the point
+    this.position = createVector(x, y);
   }
 }
 
-// Class to create and display a wave effect using points
+// WaveEffect class to generate and display wave effects
 class WaveEffect {
   constructor(numPoints, bgColor, step, transparency) {
-    this.points = []; // Array to store feature points
-    this.step = step; // Step size for drawing
-    this.transparency = transparency; // Transparency of the wave effect
-    this.bgColor = bgColor; // Base color for the wave effect
+    this.points = [];
+    this.step = step;
+    this.transparency = transparency;
+    this.bgColor = bgColor;
 
+    // Create points for wave distortion
     for (let i = 0; i < numPoints; i++) {
       let x = random(width);
       let y = random(height);
       this.points.push(new Point(x, y));
     }
 
-    this.waveLayer = createGraphics(width, height); // Graphics layer for the wave effect
+    // Create a graphics layer for the wave effect
+    this.waveLayer = createGraphics(width, height);
     this.waveLayer.pixelDensity(1);
     this.generateWaveLayer();
   }
 
+  // Generate the wave effect based on points
   generateWaveLayer() {
     this.waveLayer.clear();
     this.waveLayer.loadPixels();
@@ -375,7 +387,7 @@ class WaveEffect {
         let minDist = Infinity;
         for (let point of this.points) {
           let d = (x - point.position.x) ** 2 + (y - point.position.y) ** 2;
-          if (d < minDist) minDist = d; // Get closest distance to a point
+          if (d < minDist) minDist = d;
         }
 
         let noiseVal = Math.sqrt(minDist);
@@ -383,6 +395,7 @@ class WaveEffect {
         let colG = this.waveColor(noiseVal, green(this.bgColor), 21, 2.7);
         let colB = this.waveColor(noiseVal, blue(this.bgColor), 30, 2.7);
 
+        // Apply the colors and transparency
         for (let dx = 0; dx < this.step; dx++) {
           for (let dy = 0; dy < this.step; dy++) {
             let px = x + dx;
@@ -402,82 +415,90 @@ class WaveEffect {
     this.waveLayer.updatePixels();
   }
 
+  // Calculate wave color intensity based on distance
   waveColor(distance, base, a, e) {
     return constrain(base + Math.pow(distance / a, e), 0, 255);
   }
 
+  // Display the wave effect
   display() {
-    image(this.waveLayer, 0, 0); // Display the wave layer on screen
+    image(this.waveLayer, 0, 0);
   }
 }
 
-// Class for raindrop effect
 //rain
+// Drop class representing individual rain drops
 class Drop{
   constructor(x, y){
-    this.pos = createVector(x, y) // Position of the drop
-    this.vel = createVector(0, random(map(lowEnergy, 0, 300, 0, 30))) // Falling speed
-    this.length = random(20, 40) // Length of the raindrop
-    this.strength = random(255) // Strength of the drop (for stroke)
+    this.pos = createVector(x, y)
+    this.vel = createVector(0, random(map(lowEnergy, 0, 300, 0, 30)))
+    this.length = random(20, 40)
+    this.strength = random(255)
   }
+  // Display the drop as a line
   show(){
     stroke(255, this.strength)
-    line(this.pos.x, this.pos.y, this.pos.x, this.pos.y-this.length) // Draw the drop
+    line(this.pos.x, this.pos.y, this.pos.x, this.pos.y-this.length)
   }
   
+  // Update drop position
   update(){
-    this.pos.add(this.vel) // Update position based on velocity
+    this.pos.add(this.vel)
     if (this.pos.y > height + 100){
-      drops.shift() // Remove drop if it goes off screen
+      drops.shift()
     }
   }
   
 }
 
+// Calculate wave color intensity based on x distance
 function waveColor(x, a, b, e){
-  if(x < 0) return b;
-  else return Math.pow(x/a, e)+b;
+  if(x < 0) return b; // Return base color if x is negative
+  else return Math.pow(x/a, e)+b; // Calculate intensity with distance and given parameters
 }
 
-
-// Function to initialize wave points and calculate wave effect
+// Function to initialize wave effect settings and pre-calculate wave frames
 function waveInit(){
-  angleMode(DEGREES);
+  angleMode(DEGREES); // Set angle mode to degrees for trigonometric calculations
   stroke(255);
   strokeWeight(12);
 
-  randomSeed(70);
+  randomSeed(70); // Set seed for random number generation to ensure consistency
   for(let i = 0; i < 36; i++){
-    initPoints.push(createVector(random(width), random(height))); // Random initial points
+    // Initialize 36 random points on the canvas
+    initPoints.push(createVector(random(width), random(height)));
   }
 
+  // Generate frames for the wave effect
   for(let f = 0; f < frmLen; f++){
     points.push([]);
     for(let i = 0; i < initPoints.length; i++){
+      // Calculate new position for each point in each frame using sine and cosine
       let pX = 50*sin(f*360/frmLen+6*initPoints[i].x)+initPoints[i].x;
       let pY = 50*cos(f*360/frmLen+6*initPoints[i].y)+initPoints[i].y;
-      points[f].push(createVector(pX, pY)); // Calculate wave points for each frame
+      points[f].push(createVector(pX, pY)); // Add transformed point to frame
     }
   }
 
+  // Generate color data for each pixel in each frame
   for(let f = 0; f < frmLen; f++){
-    wave.push([]);
+    wave.push([]); // Initialize frame array
     for(let x = 0; x < width; x++){
       for(let y = 0; y < height; y++){
-        let distances = [];
+        let distances = []; // Array to store distances to points in current frame
         for(let i = 0; i < points[f].length; i++){
+          // Calculate squared distance from current pixel (x, y) to each point
           let d = (x-points[f][i].x)**2+(y-points[f][i].y)**2;
           distances[i] = d;
         }
-        let sorted = sort(distances);
-        let noise = Math.sqrt(sorted[0]);
-        let index = (x + y * width)*4;
+        let sorted = sort(distances); // Sort distances to get nearest point
+        let noise = Math.sqrt(sorted[0]); // Use nearest distance for color calculation
+        let index = (x + y * width)*4; // Calculate pixel index in wave array
 
-        // Daytime color effect
         //Daytime
-        wave[f][index+0] = waveColor(noise, 14.5, 44, 2.5);
-        wave[f][index+1] = waveColor(noise, 21, 169, 2.5);
-        wave[f][index+2] = waveColor(noise, 40, 225, 3.0);
+        wave[f][index+0] = waveColor(noise, 14.5, 44, 2.5); // Red channel
+        wave[f][index+1] = waveColor(noise, 21, 169, 2.5); // Green channel
+        wave[f][index+2] = waveColor(noise, 40, 225, 3.0); // Blue channel
 
         //Nighttime
         // wave[f][index+0] = waveColor(noise, 40, 32, 2.2);
@@ -485,7 +506,7 @@ function waveInit(){
         // wave[f][index+2] = waveColor(noise, 30, 68, 3.55);
 
         
-        wave[f][index+3] = 255;
+        wave[f][index+3] = 255; // Set alpha channel to full opacity
       }
     }
   }
@@ -494,10 +515,10 @@ function waveInit(){
 // Function to toggle music playback
 function musicPlay() {
   if (sound.isPlaying()) {
-    sound.pause();
-    noLoop();
+    sound.pause(); // Pause music if it's playing
+    noLoop(); // Stop looping animation
   } else {
-    sound.play();
-    loop();
+    sound.play(); // Play music if it's paused
+    loop(); // Resume looping animation
   }
 }
